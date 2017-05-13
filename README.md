@@ -1,2 +1,2 @@
-# alcdef2json-php
-PHP version of ALCDEF to JSON converter
+# ALCDEF to JSON
+A simple converter of ALCDEF to JSON and vice versa.

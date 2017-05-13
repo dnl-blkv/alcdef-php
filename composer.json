@@ -1,0 +1,38 @@
+{
+    "name": "dnl-blkv/alcdef2json-php",
+    "type": "library",
+    "description": "A converter of ALCDEF to JSON and back.",
+    "keywords": ["alcdef", "json", "alcdef2json", "json2alcdef", "converter", "astronomical"],
+    "homepage": "https://github.com/dnl-blkv/alcdef2json-php",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Daniil Belyakov",
+            "email": "dnl.blkv@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "dnl_blkv\\enum\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "dnl_blkv\\enum\\test\\": "test/"
+        }
+    },
+    "minimum-stability": "dev",
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packagist.org"
+        }
+    ],
+    "require": {
+        "php": ">=5.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^5.4"
+    }
+}
