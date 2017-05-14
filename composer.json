@@ -14,12 +14,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "dnl_blkv\\enum\\": "src/"
+            "dnl_blkv\\alcdef\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "dnl_blkv\\enum\\test\\": "test/"
+            "dnl_blkv\\alcdef\\test\\": "test/"
         }
     },
     "minimum-stability": "dev",
