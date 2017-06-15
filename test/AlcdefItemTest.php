@@ -9,5 +9,22 @@ use PHPUnit\Framework\TestCase;
  */
 class AlcdefItemTest extends TestCase
 {
+    /**
+     * Path to the very first ALCDEF file.
+     */
+    const PATH_ALCDEF_ZACHIA = __DIR__ . '/ALCDEF_999_Zachia_20170614_142554.txt';
 
+    /**
+     * Object Name for test.
+     */
+    const ALCDEF_OBJECT_NAME_ZACHIA = 'Zachia';
+
+    /**
+     */
+    public function testCanCreateFromString()
+    {
+        $string = file_get_contents(self::PATH_ALCDEF_ZACHIA);
+        $item = new AlcdefItem($string);
+        static::assertEquals(self::ALCDEF_OBJECT_NAME_ZACHIA, $item->getObjectName());
+    }
 }
