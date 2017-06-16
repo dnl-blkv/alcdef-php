@@ -12,7 +12,7 @@ class AlcdefItemTest extends TestCase
     /**
      * Path to the very first ALCDEF file.
      */
-    const PATH_ALCDEF_ZACHIA = __DIR__ . '/ALCDEF_999_Zachia_20170614_142554.txt';
+    const PATH_ALCDEF_ZACHIA = __DIR__ . '/ALCDEF_999_Zachia_20170614_142554_first_item.txt';
 
     /**
      * Object Name for test.
