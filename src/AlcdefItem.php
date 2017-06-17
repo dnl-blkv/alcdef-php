@@ -20,6 +20,7 @@ class AlcdefItem
     /**
      * ALCDEF field names.
      */
+    const FIELD_COMP = 'COMP';
     const FIELD_DATA = 'DATA';
     const FIELD_BIBCODE = 'BIBCODE';
     const FIELD_CIBAND = 'CIBAND';
@@ -42,6 +43,24 @@ class AlcdefItem
     const PART_COUNT_ALCDEF_LINE = 2;
     const ALCDEF_LINE_PART_INDEX_KEY = 0;
     const ALCDEF_LINE_PART_INDEX_VALUE = 1;
+
+    /**
+     * Delimiter for the data elements in a data line.
+     */
+    const DELIMITER_DATA_VALUE = '|';
+
+    /**
+     * Keys found in each data line.
+     */
+    const DATA_KEY_JD = 'JD';
+    const DATA_KEY_MAG = 'MAG';
+    const DATA_KEY_MAGERR = 'MAGERR';
+    const DATA_KEY_AIRMASS = 'AIRMASS';
+
+    /**
+     * Pattern to match the comparisons.
+     */
+    const PATTERN_COMPARISON = '@^COMP([A-Z]+)([0-9]+)$@';
 
     /**
      * @var mixed[]
@@ -95,7 +114,17 @@ class AlcdefItem
     private function loadMetadataLine($line)
     {
         $field = explode(self::DELIMITER_ALCDEF_KEY_VALUE, $line, self::PART_COUNT_ALCDEF_LINE);
-        $this->alcdefArray[$field[self::ALCDEF_LINE_PART_INDEX_KEY]] = $field[self::ALCDEF_LINE_PART_INDEX_VALUE];
+
+        if (preg_match(self::PATTERN_COMPARISON, $field[self::ALCDEF_LINE_PART_INDEX_KEY], $comparison)) {
+            if (!isset($this->alcdefArray[self::FIELD_COMP][$comparison[2]])) {
+                $this->alcdefArray[self::FIELD_COMP][$comparison[2]] = [];
+            }
+
+            $this->alcdefArray[self::FIELD_COMP][$comparison[2]][$comparison[1]] =
+                $field[self::ALCDEF_LINE_PART_INDEX_VALUE];
+        } else {
+            $this->alcdefArray[$field[self::ALCDEF_LINE_PART_INDEX_KEY]] = $field[self::ALCDEF_LINE_PART_INDEX_VALUE];
+        }
     }
 
     /**
@@ -114,7 +143,23 @@ class AlcdefItem
     private function loadDataLine($dataLine)
     {
         $field = explode(self::DELIMITER_ALCDEF_KEY_VALUE, $dataLine, self::SUBMATCH_INDEX_DATA);
-        $this->alcdefArray[self::FIELD_DATA][] = $field[self::SUBMATCH_INDEX_METADATA];
+        $dataValues = explode(self::DELIMITER_DATA_VALUE, $field[self::SUBMATCH_INDEX_METADATA]);
+        $dataMap = [
+            self::DATA_KEY_JD => $dataValues[0],
+            self::DATA_KEY_MAG => $dataValues[1],
+            self::DATA_KEY_MAGERR => null,
+            self::DATA_KEY_AIRMASS => null,
+        ];
+
+        if (isset($dataValues[2])) {
+            $dataMap[self::DATA_KEY_MAGERR] = $dataValues[2];
+        }
+
+        if (isset($dataValues[3])) {
+            $dataMap[self::DATA_KEY_AIRMASS] = $dataValues[3];
+        }
+
+        $this->alcdefArray[self::FIELD_DATA][] = $dataMap;
     }
 
     /**
