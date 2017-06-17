@@ -15,7 +15,7 @@ class AlcdefItem
     /**
      * Delimiters to split ALCDEF document into lines.
      */
-    const DELIMITER_ALCDEF_LINES = self::NEW_LINE_UNIX;
+    const DELIMITER_LINES = self::NEW_LINE_UNIX;
 
     /**
      * ALCDEF field names.
@@ -46,7 +46,9 @@ class AlcdefItem
     /**
      * @var mixed[]
      */
-    private $alcdefArray = [];
+    private $alcdefArray = [
+        self::FIELD_DATA => [],
+    ];
 
     /**
      * @param string $alcdefString
@@ -63,8 +65,8 @@ class AlcdefItem
     {
         $alcdefString = $this->normalizeNewlines($alcdefString);
         preg_match(self::PATTERN_ALCDEF_METADATA_DATA, $alcdefString, $alcdefParts);
-        $this->loadAlcdefMetadata($alcdefParts[self::SUBMATCH_INDEX_METADATA]);
-        $this->loadAlcdefData($alcdefParts[self::SUBMATCH_INDEX_DATA]);
+        $this->loadMetadata($alcdefParts[self::SUBMATCH_INDEX_METADATA]);
+        $this->loadData($alcdefParts[self::SUBMATCH_INDEX_DATA]);
     }
 
     /**
@@ -78,27 +80,41 @@ class AlcdefItem
     }
 
     /**
-     * @param string $alcdefMetadataString
+     * @param string $metadataString
      */
-    private function loadAlcdefMetadata($alcdefMetadataString)
+    private function loadMetadata($metadataString)
     {
-        foreach (explode(self::DELIMITER_ALCDEF_LINES, $alcdefMetadataString) as $line) {
-            $field = explode(self::DELIMITER_ALCDEF_KEY_VALUE, $line, self::PART_COUNT_ALCDEF_LINE);
-            $this->alcdefArray[$field[self::ALCDEF_LINE_PART_INDEX_KEY]] = $field[self::ALCDEF_LINE_PART_INDEX_VALUE];
+        foreach (explode(self::DELIMITER_LINES, $metadataString) as $line) {
+            $this->loadMetadataLine($line);
         }
     }
 
     /**
-     * @param string $alcdefDataString
+     * @param string $line
      */
-    private function loadAlcdefData($alcdefDataString)
+    private function loadMetadataLine($line)
     {
-        $this->alcdefArray[self::FIELD_DATA] = [];
+        $field = explode(self::DELIMITER_ALCDEF_KEY_VALUE, $line, self::PART_COUNT_ALCDEF_LINE);
+        $this->alcdefArray[$field[self::ALCDEF_LINE_PART_INDEX_KEY]] = $field[self::ALCDEF_LINE_PART_INDEX_VALUE];
+    }
 
-        foreach (explode(self::DELIMITER_ALCDEF_LINES, $alcdefDataString) as $line) {
-            $field = explode(self::DELIMITER_ALCDEF_KEY_VALUE, $line, self::SUBMATCH_INDEX_DATA);
-            $this->alcdefArray[self::FIELD_DATA][] = $field[self::SUBMATCH_INDEX_METADATA];
+    /**
+     * @param string $dataString
+     */
+    private function loadData($dataString)
+    {
+        foreach (explode(self::DELIMITER_LINES, $dataString) as $line) {
+            $this->loadDataLine($line);
         }
+    }
+
+    /**
+     * @param string $dataLine
+     */
+    private function loadDataLine($dataLine)
+    {
+        $field = explode(self::DELIMITER_ALCDEF_KEY_VALUE, $dataLine, self::SUBMATCH_INDEX_DATA);
+        $this->alcdefArray[self::FIELD_DATA][] = $field[self::SUBMATCH_INDEX_METADATA];
     }
 
     /**
@@ -107,6 +123,20 @@ class AlcdefItem
     public function getBibCode()
     {
         return $this->getFieldByName(self::FIELD_BIBCODE);
+    }
+
+    /**
+     * @param $name
+     *
+     * @return mixed|null
+     */
+    private function getFieldByName($name)
+    {
+        if (isset($this->alcdefArray[$name])) {
+            return $this->alcdefArray[$name];
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -147,19 +177,5 @@ class AlcdefItem
     public function getObjectNumber()
     {
         return $this->getFieldByName(self::FIELD_OBJECTNUMBER);
-    }
-
-    /**
-     * @param $name
-     *
-     * @return mixed|null
-     */
-    private function getFieldByName($name)
-    {
-        if (isset($this->alcdefArray[$name])) {
-            return $this->alcdefArray[$name];
-        } else {
-            return null;
-        }
     }
 }
