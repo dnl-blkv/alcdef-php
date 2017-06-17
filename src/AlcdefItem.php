@@ -21,7 +21,12 @@ class AlcdefItem
      * ALCDEF field names.
      */
     const FIELD_DATA = 'DATA';
-    const FIELD_OBJECT_NAME = 'OBJECTNAME';
+    const FIELD_BIBCODE = 'BIBCODE';
+    const FIELD_CIBAND = 'CIBAND';
+    const FIELD_CICORRECTION = 'CICORRECTION';
+    const FIELD_CITARGET = 'CITARGET';
+    const FIELD_OBJECTNAME = 'OBJECTNAME';
+    const FIELD_OBJECTNUMBER = 'OBJECTNUMBER';
 
     /**
      * Constants to split an ALCDEF unit into data and metadata.
@@ -99,9 +104,49 @@ class AlcdefItem
     /**
      * @return string
      */
+    public function getBibCode()
+    {
+        return $this->getFieldByName(self::FIELD_BIBCODE);
+    }
+
+    /**
+     * @return string
+     */
+    public function getCiBand()
+    {
+        return $this->getFieldByName(self::FIELD_CIBAND);
+    }
+
+    /**
+     * @return string
+     */
+    public function getCiCorrection()
+    {
+        return $this->getFieldByName(self::FIELD_CICORRECTION);
+    }
+
+    /**
+     * @return string
+     */
+    public function getCiTarget()
+    {
+        return $this->getFieldByName(self::FIELD_CITARGET);
+    }
+
+    /**
+     * @return string
+     */
     public function getObjectName()
     {
-        return $this->getFieldByName(self::FIELD_OBJECT_NAME);
+        return $this->getFieldByName(self::FIELD_OBJECTNAME);
+    }
+
+    /**
+     * @return string
+     */
+    public function getObjectNumber()
+    {
+        return $this->getFieldByName(self::FIELD_OBJECTNUMBER);
     }
 
     /**
