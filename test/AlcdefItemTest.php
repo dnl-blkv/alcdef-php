@@ -28,7 +28,7 @@ class AlcdefItemTest extends TestCase
      */
     public function testCanCreateFromString()
     {
-        $item = new AlcdefItem(file_get_contents(self::PATH_ALCDEF));
+        $item = AlcdefItem::createFromAlcdef(file_get_contents(self::PATH_ALCDEF));
 
         static::assertEquals(self::ALCDEF_ZACHIA_CIBAND, $item->getCiBand());
         static::assertEquals(self::ALCDEF_ZACHIA_CICORRECTION, $item->getCiCorrection());

@@ -51,12 +51,37 @@ class AlcdefItem
     private $alcdefArray;
 
     /**
-     * @param string $alcdefString
+     * Constructor is private because we only want to instantiate from the factory methods.
      */
-    public function __construct($alcdefString)
+    private function __construct()
     {
-        $parser = new AlcdefParser();
-        $this->alcdefArray = $parser->parse($alcdefString);
+    }
+
+    /**
+     * @param string $alcdef
+     *
+     * @return static
+     */
+    public static function createFromAlcdef($alcdef)
+    {
+        $decoder = new AlcdefDecoder();
+        $item = new static();
+        $item->alcdefArray = $decoder->decode($alcdef);
+
+        return $item;
+    }
+
+    /**
+     * @param string $json
+     *
+     * @return static
+     */
+    public static function createFromJson($json)
+    {
+        $item = new static();
+        $item->alcdefArray = json_decode($json, true);
+
+        return $item;
     }
 
     /**

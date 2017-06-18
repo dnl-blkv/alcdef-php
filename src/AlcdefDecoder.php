@@ -4,7 +4,7 @@ namespace dnl_blkv\alcdef;
 
 /**
  */
-class AlcdefParser
+class AlcdefDecoder
 {
     /**
      * Newline values to use in our ALCDEF strings.
@@ -82,7 +82,7 @@ class AlcdefParser
      *
      * @return mixed[]
      */
-    public function parse($alcdefString)
+    public function decode($alcdefString)
     {
         $alcdefString = $this->normalizeNewlines($alcdefString);
         $alcdefParts = $this->parseAlcdefParts($alcdefString);
