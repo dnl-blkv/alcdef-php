@@ -232,7 +232,9 @@ class AlcdefDecoder
      */
     private function castValue($field, $value)
     {
-        if ($this->isString($field)) {
+        if (empty($value)) {
+            return null;
+        } elseif ($this->isString($field)) {
             return (string)$value;
         } elseif ($this->isDouble($field)) {
             return (double)$value;
