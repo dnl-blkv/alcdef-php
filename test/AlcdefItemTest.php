@@ -19,8 +19,8 @@ class AlcdefItemTest extends TestCase
      */
     const ALCDEF_ZACHIA_BIBCODE = null;
     const ALCDEF_ZACHIA_CIBAND = 'NONE';
-    const ALCDEF_ZACHIA_CICORRECTION = 'FALSE';
-    const ALCDEF_ZACHIA_CITARGET = '+0.000';
+    const ALCDEF_ZACHIA_CICORRECTION = false;
+    const ALCDEF_ZACHIA_CITARGET = +0.000;
     const ALCDEF_ZACHIA_OBJECTNAME = 'Zachia';
     const ALCDEF_ZACHIA_OBJECTNUMBER = 999;
 
