@@ -2,7 +2,8 @@
 
 namespace dnl_blkv\alcdef\test;
 
-use dnl_blkv\alcdef\AlcdefDecoder;
+use dnl_blkv\alcdef\AlcdefItem;
+use dnl_blkv\alcdef\SimpleAlcdefCodec;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -19,10 +20,11 @@ class AlcdefDecoderTest extends TestCase
      */
     public function testCanCreateFromString()
     {
-        $alcdefArrayExpected = json_decode(file_get_contents(self::PATH_JSON_EXPECTED), true);
-        $decoder = new AlcdefDecoder();
-        $alcdefArrayActual = $decoder->decode(file_get_contents(self::PATH_ALCDEF_ORIGINAL));
+        $decoder = new SimpleAlcdefCodec();
+        $alcdefOriginal = file_get_contents(self::PATH_ALCDEF_ORIGINAL);
+        $alcdefItemActual = AlcdefItem::createFromAlcdef($decoder, $alcdefOriginal);
+        $jsonActual = $alcdefItemActual->toJson(JSON_PRETTY_PRINT);
 
-        static::assertEquals($alcdefArrayExpected, $alcdefArrayActual);
+        static::assertJsonStringEqualsJsonFile(self::PATH_JSON_EXPECTED, $jsonActual);
     }
 }

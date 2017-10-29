@@ -7,48 +7,14 @@ namespace dnl_blkv\alcdef;
 class AlcdefItem
 {
     /**
-     * ALCDEF field names.
+     * Option value for json_encode meaning no options.
      */
-    const FIELD_BIBCODE = 'BIBCODE';
-    const FIELD_CIBAND = 'CIBAND';
-    const FIELD_CICORRECTION = 'CICORRECTION';
-    const FIELD_CITARGET = 'CITARGET';
-    const FIELD_COMMENT = 'COMMENT';
-    const FIELD_COMP = 'COMP';
-    const FIELD_CONTACTINFO = 'CONTACTINFO';
-    const FIELD_CONTACTNAME = 'CONTACTNAME';
-    const FIELD_DATA = 'DATA';
-    const FIELD_DELIMITER = 'DELIMITER';
-    const FIELD_DIFFERMAGS = 'DIFFERMAGS';
-    const FIELD_FILTER = 'FILTER';
-    const FIELD_LTCAPP = 'LTCAPP';
-    const FIELD_LTCDAYS = 'LTCDAYS';
-    const FIELD_LTCTYPE = 'LTCTYPE';
-    const FIELD_MAGADJUST = 'MAGADJUST';
-    const FIELD_MAGBAND = 'MAGBAND';
-    const FIELD_MPCDESIG = 'MPCDESIG';
-    const FIELD_OBJECTDEC = 'OBJECTDEC';
-    const FIELD_OBJECTNAME = 'OBJECTNAME';
-    const FIELD_OBJECTNUMBER = 'OBJECTNUMBER';
-    const FIELD_OBJECTRA = 'OBJECTRA';
-    const FIELD_OBSERVERS = 'OBSERVERS';
-    const FIELD_OBSLATITUDE = 'OBSLATITUDE';
-    const FIELD_OBSLONGITUDE = 'OBSLONGITUDE';
-    const FIELD_PABB = 'PABB';
-    const FIELD_PABL = 'PABL';
-    const FIELD_PHASE = 'PHASE';
-    const FIELD_PUBLICATION = 'PUBLICATION';
-    const FIELD_REDUCEDMAGS = 'REDUCEDMAGS';
-    const FIELD_REVISEDDATA = 'REVISEDDATA';
-    const FIELD_SESSIONDATE = 'SESSIONDATE';
-    const FIELD_SESSIONTIME = 'SESSIONTIME';
-    const FIELD_STANDARD = 'STANDARD';
-    const FIELD_UCORMAG = 'UCORMAG';
+    const JSON_ENCODE_OPTIONS_NONE = 0;
 
     /**
      * @var mixed[]
      */
-    private $alcdefArray;
+    private $definition;
 
     /**
      * Constructor is private because we only want to instantiate from the factory methods.
@@ -58,15 +24,15 @@ class AlcdefItem
     }
 
     /**
+     * @param AlcdefDecoder $alcdefDecoder
      * @param string $alcdef
      *
      * @return static
      */
-    public static function createFromAlcdef($alcdef)
+    public static function createFromAlcdef(AlcdefDecoder $alcdefDecoder, $alcdef)
     {
-        $decoder = new AlcdefDecoder();
         $item = new static();
-        $item->alcdefArray = $decoder->decode($alcdef);
+        $item->definition = $alcdefDecoder->decode($alcdef);
 
         return $item;
     }
@@ -79,9 +45,29 @@ class AlcdefItem
     public static function createFromJson($json)
     {
         $item = new static();
-        $item->alcdefArray = json_decode($json, true);
+        $item->definition = json_decode($json, true);
 
         return $item;
+    }
+
+    /**
+     * @param int $options
+     *
+     * @return string
+     */
+    public function toJson($options = self::JSON_ENCODE_OPTIONS_NONE)
+    {
+        return json_encode($this->definition, $options);
+    }
+
+    /**
+     * @param AlcdefEncoder $alcdefEncoder
+     *
+     * @return string
+     */
+    public function toAlcdef(AlcdefEncoder $alcdefEncoder)
+    {
+        return $alcdefEncoder->encode($this);
     }
 
     /**
@@ -89,7 +75,7 @@ class AlcdefItem
      */
     public function getBibCode()
     {
-        return $this->getFieldByName(self::FIELD_BIBCODE);
+        return $this->getFieldByName(AlcdefFormat::FIELD_BIBCODE);
     }
 
     /**
@@ -99,8 +85,8 @@ class AlcdefItem
      */
     private function getFieldByName($name)
     {
-        if (isset($this->alcdefArray[$name])) {
-            return $this->alcdefArray[$name];
+        if (isset($this->definition[$name])) {
+            return $this->definition[$name];
         } else {
             return null;
         }
@@ -111,7 +97,7 @@ class AlcdefItem
      */
     public function getCiBand()
     {
-        return $this->getFieldByName(self::FIELD_CIBAND);
+        return $this->getFieldByName(AlcdefFormat::FIELD_CIBAND);
     }
 
     /**
@@ -119,7 +105,7 @@ class AlcdefItem
      */
     public function getCiCorrection()
     {
-        return $this->getFieldByName(self::FIELD_CICORRECTION);
+        return $this->getFieldByName(AlcdefFormat::FIELD_CICORRECTION);
     }
 
     /**
@@ -127,7 +113,7 @@ class AlcdefItem
      */
     public function getCiTarget()
     {
-        return $this->getFieldByName(self::FIELD_CITARGET);
+        return $this->getFieldByName(AlcdefFormat::FIELD_CITARGET);
     }
 
     /**
@@ -135,7 +121,7 @@ class AlcdefItem
      */
     public function getComment()
     {
-        return $this->getFieldByName(self::FIELD_COMMENT);
+        return $this->getFieldByName(AlcdefFormat::FIELD_COMMENT);
     }
 
     /**
@@ -143,7 +129,7 @@ class AlcdefItem
      */
     public function getComp()
     {
-        return $this->getFieldByName(self::FIELD_COMP);
+        return $this->getFieldByName(AlcdefFormat::FIELD_COMP);
     }
 
     /**
@@ -151,7 +137,7 @@ class AlcdefItem
      */
     public function getContactInfo()
     {
-        return $this->getFieldByName(self::FIELD_CONTACTINFO);
+        return $this->getFieldByName(AlcdefFormat::FIELD_CONTACTINFO);
     }
 
     /**
@@ -159,7 +145,7 @@ class AlcdefItem
      */
     public function getContactName()
     {
-        return $this->getFieldByName(self::FIELD_CONTACTNAME);
+        return $this->getFieldByName(AlcdefFormat::FIELD_CONTACTNAME);
     }
 
     /**
@@ -167,7 +153,7 @@ class AlcdefItem
      */
     public function getData()
     {
-        return $this->getFieldByName(self::FIELD_DATA);
+        return $this->getFieldByName(AlcdefFormat::FIELD_DATA);
     }
 
     /**
@@ -175,7 +161,7 @@ class AlcdefItem
      */
     public function getDelimiter()
     {
-        return $this->getFieldByName(self::FIELD_DELIMITER);
+        return $this->getFieldByName(AlcdefFormat::FIELD_DELIMITER);
     }
 
     /**
@@ -183,7 +169,7 @@ class AlcdefItem
      */
     public function getDifferMags()
     {
-        return $this->getFieldByName(self::FIELD_DIFFERMAGS);
+        return $this->getFieldByName(AlcdefFormat::FIELD_DIFFERMAGS);
     }
 
     /**
@@ -191,7 +177,7 @@ class AlcdefItem
      */
     public function getFilter()
     {
-        return $this->getFieldByName(self::FIELD_FILTER);
+        return $this->getFieldByName(AlcdefFormat::FIELD_FILTER);
     }
 
     /**
@@ -199,7 +185,7 @@ class AlcdefItem
      */
     public function getLtcApp()
     {
-        return $this->getFieldByName(self::FIELD_LTCAPP);
+        return $this->getFieldByName(AlcdefFormat::FIELD_LTCAPP);
     }
 
     /**
@@ -207,7 +193,7 @@ class AlcdefItem
      */
     public function getLtcDays()
     {
-        return $this->getFieldByName(self::FIELD_LTCDAYS);
+        return $this->getFieldByName(AlcdefFormat::FIELD_LTCDAYS);
     }
 
     /**
@@ -215,7 +201,7 @@ class AlcdefItem
      */
     public function getLtcType()
     {
-        return $this->getFieldByName(self::FIELD_LTCTYPE);
+        return $this->getFieldByName(AlcdefFormat::FIELD_LTCTYPE);
     }
 
     /**
@@ -223,7 +209,7 @@ class AlcdefItem
      */
     public function getMagAdjust()
     {
-        return $this->getFieldByName(self::FIELD_MAGADJUST);
+        return $this->getFieldByName(AlcdefFormat::FIELD_MAGADJUST);
     }
 
     /**
@@ -231,7 +217,7 @@ class AlcdefItem
      */
     public function getMagBand()
     {
-        return $this->getFieldByName(self::FIELD_MAGBAND);
+        return $this->getFieldByName(AlcdefFormat::FIELD_MAGBAND);
     }
 
     /**
@@ -239,7 +225,7 @@ class AlcdefItem
      */
     public function getMpcDesig()
     {
-        return $this->getFieldByName(self::FIELD_MPCDESIG);
+        return $this->getFieldByName(AlcdefFormat::FIELD_MPCDESIG);
     }
 
     /**
@@ -247,7 +233,7 @@ class AlcdefItem
      */
     public function getObjectDec()
     {
-        return $this->getFieldByName(self::FIELD_OBJECTDEC);
+        return $this->getFieldByName(AlcdefFormat::FIELD_OBJECTDEC);
     }
 
     /**
@@ -255,7 +241,7 @@ class AlcdefItem
      */
     public function getObjectName()
     {
-        return $this->getFieldByName(self::FIELD_OBJECTNAME);
+        return $this->getFieldByName(AlcdefFormat::FIELD_OBJECTNAME);
     }
 
     /**
@@ -263,7 +249,7 @@ class AlcdefItem
      */
     public function getObjectNumber()
     {
-        return $this->getFieldByName(self::FIELD_OBJECTNUMBER);
+        return $this->getFieldByName(AlcdefFormat::FIELD_OBJECTNUMBER);
     }
 
     /**
@@ -271,7 +257,7 @@ class AlcdefItem
      */
     public function getObjectRa()
     {
-        return $this->getFieldByName(self::FIELD_OBJECTRA);
+        return $this->getFieldByName(AlcdefFormat::FIELD_OBJECTRA);
     }
 
     /**
@@ -279,7 +265,7 @@ class AlcdefItem
      */
     public function getObservers()
     {
-        return $this->getFieldByName(self::FIELD_OBSERVERS);
+        return $this->getFieldByName(AlcdefFormat::FIELD_OBSERVERS);
     }
 
     /**
@@ -287,7 +273,7 @@ class AlcdefItem
      */
     public function getObsLatitude()
     {
-        return $this->getFieldByName(self::FIELD_OBSLATITUDE);
+        return $this->getFieldByName(AlcdefFormat::FIELD_OBSLATITUDE);
     }
 
     /**
@@ -295,7 +281,7 @@ class AlcdefItem
      */
     public function getObsLongitude()
     {
-        return $this->getFieldByName(self::FIELD_OBSLONGITUDE);
+        return $this->getFieldByName(AlcdefFormat::FIELD_OBSLONGITUDE);
     }
 
     /**
@@ -303,7 +289,7 @@ class AlcdefItem
      */
     public function getPabb()
     {
-        return $this->getFieldByName(self::FIELD_PABB);
+        return $this->getFieldByName(AlcdefFormat::FIELD_PABB);
     }
 
     /**
@@ -311,7 +297,7 @@ class AlcdefItem
      */
     public function getPabl()
     {
-        return $this->getFieldByName(self::FIELD_PABL);
+        return $this->getFieldByName(AlcdefFormat::FIELD_PABL);
     }
 
     /**
@@ -319,7 +305,7 @@ class AlcdefItem
      */
     public function getPhase()
     {
-        return $this->getFieldByName(self::FIELD_PHASE);
+        return $this->getFieldByName(AlcdefFormat::FIELD_PHASE);
     }
 
     /**
@@ -327,7 +313,7 @@ class AlcdefItem
      */
     public function getPublication()
     {
-        return $this->getFieldByName(self::FIELD_PUBLICATION);
+        return $this->getFieldByName(AlcdefFormat::FIELD_PUBLICATION);
     }
 
     /**
@@ -335,7 +321,7 @@ class AlcdefItem
      */
     public function getReducedMags()
     {
-        return $this->getFieldByName(self::FIELD_REDUCEDMAGS);
+        return $this->getFieldByName(AlcdefFormat::FIELD_REDUCEDMAGS);
     }
 
     /**
@@ -343,7 +329,7 @@ class AlcdefItem
      */
     public function getRevisedData()
     {
-        return $this->getFieldByName(self::FIELD_REVISEDDATA);
+        return $this->getFieldByName(AlcdefFormat::FIELD_REVISEDDATA);
     }
 
     /**
@@ -351,7 +337,7 @@ class AlcdefItem
      */
     public function getSessionDate()
     {
-        return $this->getFieldByName(self::FIELD_SESSIONDATE);
+        return $this->getFieldByName(AlcdefFormat::FIELD_SESSIONDATE);
     }
 
     /**
@@ -359,7 +345,7 @@ class AlcdefItem
      */
     public function getSessionTime()
     {
-        return $this->getFieldByName(self::FIELD_SESSIONTIME);
+        return $this->getFieldByName(AlcdefFormat::FIELD_SESSIONTIME);
     }
 
     /**
@@ -367,7 +353,7 @@ class AlcdefItem
      */
     public function getStandard()
     {
-        return $this->getFieldByName(self::FIELD_STANDARD);
+        return $this->getFieldByName(AlcdefFormat::FIELD_STANDARD);
     }
 
     /**
@@ -375,6 +361,6 @@ class AlcdefItem
      */
     public function getUCorMag()
     {
-        return $this->getFieldByName(self::FIELD_UCORMAG);
+        return $this->getFieldByName(AlcdefFormat::FIELD_UCORMAG);
     }
 }
