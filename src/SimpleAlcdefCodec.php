@@ -79,14 +79,14 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
     /**
      * @var mixed[]
      */
-    private $alcdefArray = [
+    protected $alcdefDefinition = [
         AlcdefFormat::FIELD_DATA => [],
     ];
 
     /**
      * @var string
      */
-    private $delimiterDataValue = self::DELIMITER_DATA_VALUE_DEFAULT;
+    protected $delimiterDataValue = self::DELIMITER_DATA_VALUE_DEFAULT;
 
     /**
      * @param string $alcdefString
@@ -100,7 +100,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
         $this->loadMetadata($alcdefParts[self::SUBMATCH_INDEX_METADATA]);
         $this->loadData($alcdefParts[self::SUBMATCH_INDEX_DATA]);
 
-        return $this->alcdefArray;
+        return $this->alcdefDefinition;
     }
 
     /**
@@ -108,7 +108,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      *
      * @return string
      */
-    private function normalizeNewlines($string)
+    protected function normalizeNewlines($string)
     {
         return preg_replace(self::PATTERN_NEW_LINE_ANY, self::NEW_LINE_UNIX, $string);
     }
@@ -118,7 +118,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      *
      * @return string[]
      */
-    private function parseAlcdefParts($alcdefString)
+    protected function parseAlcdefParts($alcdefString)
     {
         preg_match(self::PATTERN_ALCDEF_METADATA_DATA, $alcdefString, $alcdefParts);
 
@@ -128,7 +128,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
     /**
      * @param string $metadataString
      */
-    private function loadMetadata($metadataString)
+    protected function loadMetadata($metadataString)
     {
         foreach (explode(self::DELIMITER_LINES, $metadataString) as $line) {
             $this->loadMetadataLine($line);
@@ -138,19 +138,19 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
     /**
      * @param string $line
      */
-    private function loadMetadataLine($line)
+    protected function loadMetadataLine($line)
     {
         $field = explode(self::DELIMITER_ALCDEF_KEY_VALUE, $line, self::ALCDEF_LINE_PART_COUNT);
 
         if (preg_match(self::PATTERN_COMPARISON, $field[self::ALCDEF_LINE_PART_INDEX_KEY], $comparison)) {
             $starNumber = $comparison[self::INDEX_COMPARISON_STAR_NUMBER];
 
-            if (!isset($this->alcdefArray[AlcdefFormat::FIELD_COMP][$starNumber])) {
-                $this->alcdefArray[AlcdefFormat::FIELD_COMP][$starNumber] = [];
+            if (!isset($this->alcdefDefinition[AlcdefFormat::FIELD_COMP][$starNumber])) {
+                $this->alcdefDefinition[AlcdefFormat::FIELD_COMP][$starNumber] = [];
             }
 
             $parameter = $comparison[self::INDEX_COMPARISON_PARAMETER];
-            $this->alcdefArray[AlcdefFormat::FIELD_COMP][$starNumber][$parameter] = $this->castValue(
+            $this->alcdefDefinition[AlcdefFormat::FIELD_COMP][$starNumber][$parameter] = $this->castValue(
                 $parameter,
                 $field[self::ALCDEF_LINE_PART_INDEX_VALUE]
             );
@@ -159,7 +159,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
                 $this->setDelimiterDataValueFromLiteral($field[self::ALCDEF_LINE_PART_INDEX_VALUE]);
             }
 
-            $this->alcdefArray[$field[self::ALCDEF_LINE_PART_INDEX_KEY]] = $this->castValue(
+            $this->alcdefDefinition[$field[self::ALCDEF_LINE_PART_INDEX_KEY]] = $this->castValue(
                 $field[self::ALCDEF_LINE_PART_INDEX_KEY],
                 $field[self::ALCDEF_LINE_PART_INDEX_VALUE]
             );
@@ -173,7 +173,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      * @return string|int|bool|double
      * @throws Exception when the field name is unexpected.
      */
-    private function castValue($field, $value)
+    protected function castValue($field, $value)
     {
         if (empty($value)) {
             return null;
@@ -195,15 +195,15 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      *
      * @return bool
      */
-    private function isString($field)
+    protected function isString($field)
     {
         $stringFields = [
+            AlcdefFormat::COMP_FIELD_DEC => true,
+            AlcdefFormat::COMP_FIELD_NAME => true,
+            AlcdefFormat::COMP_FIELD_RA => true,
             AlcdefFormat::FIELD_BIBCODE => true,
             AlcdefFormat::FIELD_CIBAND => true,
             AlcdefFormat::FIELD_COMMENT => true,
-            AlcdefFormat::SUBFIELD_COMP_DEC => true,
-            AlcdefFormat::SUBFIELD_COMP_NAME => true,
-            AlcdefFormat::SUBFIELD_COMP_RA => true,
             AlcdefFormat::FIELD_CONTACTINFO => true,
             AlcdefFormat::FIELD_CONTACTNAME => true,
             AlcdefFormat::FIELD_DELIMITER => true,
@@ -231,12 +231,12 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      *
      * @return bool
      */
-    private function isDouble($field)
+    protected function isDouble($field)
     {
         $doubleFields = [
+            AlcdefFormat::COMP_FIELD_CI => true,
+            AlcdefFormat::COMP_FIELD_MAG => true,
             AlcdefFormat::FIELD_CITARGET => true,
-            AlcdefFormat::SUBFIELD_COMP_CI => true,
-            AlcdefFormat::SUBFIELD_COMP_MAG => true,
             AlcdefFormat::FIELD_LTCDAYS => true,
             AlcdefFormat::FIELD_MAGADJUST => true,
             AlcdefFormat::FIELD_OBSLATITUDE => true,
@@ -255,7 +255,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      *
      * @return bool
      */
-    private function isBoolean($field)
+    protected function isBoolean($field)
     {
         $booleanFields = [
             AlcdefFormat::FIELD_CICORRECTION => true,
@@ -271,7 +271,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      *
      * @return bool
      */
-    private function isInteger($field)
+    protected function isInteger($field)
     {
         $integerFields = [
             AlcdefFormat::FIELD_LCBLOCKID => true,
@@ -284,7 +284,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
     /**
      * @param string $delimiterLiteral
      */
-    private function setDelimiterDataValueFromLiteral($delimiterLiteral)
+    protected function setDelimiterDataValueFromLiteral($delimiterLiteral)
     {
         if ($delimiterLiteral === self::DELIMITER_LITERAL_TAB) {
             $this->delimiterDataValue = self::DELIMITER_TAB;
@@ -296,7 +296,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
     /**
      * @param string $dataString
      */
-    private function loadData($dataString)
+    protected function loadData($dataString)
     {
         foreach (explode(self::DELIMITER_LINES, $dataString) as $line) {
             $this->loadDataLine($line);
@@ -306,7 +306,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
     /**
      * @param string $dataLine
      */
-    private function loadDataLine($dataLine)
+    protected function loadDataLine($dataLine)
     {
         $field = explode(self::DELIMITER_ALCDEF_KEY_VALUE, $dataLine, self::SUBMATCH_INDEX_DATA);
         $dataValues = explode($this->delimiterDataValue, $field[self::SUBMATCH_INDEX_METADATA]);
@@ -323,7 +323,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
             $dataMap[AlcdefFormat::DATA_KEY_AIRMASS] = (double)$dataValues[self::INDEX_DATA_AIRMASS];
         }
 
-        $this->alcdefArray[AlcdefFormat::FIELD_DATA][] = $dataMap;
+        $this->alcdefDefinition[AlcdefFormat::FIELD_DATA][] = $dataMap;
     }
 
     /**

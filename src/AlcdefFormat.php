@@ -48,11 +48,11 @@ abstract class AlcdefFormat
     /**
      * Fields and sub-fields for comparisons.
      */
-    const SUBFIELD_COMP_CI = 'CI';
-    const SUBFIELD_COMP_DEC = 'DEC';
-    const SUBFIELD_COMP_MAG = 'MAG';
-    const SUBFIELD_COMP_NAME = 'NAME';
-    const SUBFIELD_COMP_RA = 'RA';
+    const COMP_FIELD_CI = 'CI';
+    const COMP_FIELD_DEC = 'DEC';
+    const COMP_FIELD_MAG = 'MAG';
+    const COMP_FIELD_NAME = 'NAME';
+    const COMP_FIELD_RA = 'RA';
 
     /**
      * Keys found in each data line.
