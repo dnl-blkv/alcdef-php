@@ -327,12 +327,12 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
     }
 
     /**
-     * @param AlcdefItem $alcdefItem
+     * @param mixed[] $definition
      *
      * @return string
      */
-    public function encode(AlcdefItem $alcdefItem)
+    public function encode(array $definition)
     {
-
+        return '';
     }
 }

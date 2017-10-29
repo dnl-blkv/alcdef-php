@@ -6,9 +6,9 @@ namespace dnl_blkv\alcdef;
 interface AlcdefEncoder
 {
     /**
-     * @param AlcdefItem $alcdefItem
+     * @param mixed[] $definition
      *
      * @return string
      */
-    public function encode(AlcdefItem $alcdefItem);
+    public function encode(array $definition);
 }

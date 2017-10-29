@@ -8,7 +8,7 @@ interface AlcdefDecoder
     /**
      * @param string $alcdefString
      *
-     * @return AlcdefItem
+     * @return mixed[]
      */
     public function decode($alcdefString);
 }

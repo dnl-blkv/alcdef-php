@@ -29,10 +29,22 @@ class AlcdefItem
      *
      * @return static
      */
-    public static function createFromAlcdef(AlcdefDecoder $alcdefDecoder, $alcdef)
+    public static function fromAlcdef(AlcdefDecoder $alcdefDecoder, $alcdef)
+    {
+        $definition = $alcdefDecoder->decode($alcdef);
+
+        return static::fromArray($definition);
+    }
+
+    /**
+     * @param mixed[] $definition
+     *
+     * @return static
+     */
+    public static function fromArray($definition)
     {
         $item = new static();
-        $item->definition = $alcdefDecoder->decode($alcdef);
+        $item->definition = $definition;
 
         return $item;
     }
@@ -42,12 +54,11 @@ class AlcdefItem
      *
      * @return static
      */
-    public static function createFromJson($json)
+    public static function fromJson($json)
     {
-        $item = new static();
-        $item->definition = json_decode($json, true);
+        $definition = json_decode($json, true);
 
-        return $item;
+        return static::fromArray($definition);
     }
 
     /**
@@ -67,7 +78,15 @@ class AlcdefItem
      */
     public function toAlcdef(AlcdefEncoder $alcdefEncoder)
     {
-        return $alcdefEncoder->encode($this);
+        return $alcdefEncoder->encode($this->toArray());
+    }
+
+    /**
+     * @return mixed[]
+     */
+    public function toArray()
+    {
+        return $this->definition;
     }
 
     /**

@@ -8,7 +8,7 @@ use PHPUnit\Framework\TestCase;
 
 /**
  */
-class AlcdefDecoderTest extends TestCase
+class SimpleAlcdefCodecTest extends TestCase
 {
     /**
      * Path to to the ALCDEF and expected JSON.
@@ -18,11 +18,11 @@ class AlcdefDecoderTest extends TestCase
 
     /**
      */
-    public function testCanCreateFromString()
+    public function testCanCreateAlcdefItemFromString()
     {
-        $decoder = new SimpleAlcdefCodec();
+        $codec = new SimpleAlcdefCodec();
         $alcdefOriginal = file_get_contents(self::PATH_ALCDEF_ORIGINAL);
-        $alcdefItemActual = AlcdefItem::createFromAlcdef($decoder, $alcdefOriginal);
+        $alcdefItemActual = AlcdefItem::fromAlcdef($codec, $alcdefOriginal);
         $jsonActual = $alcdefItemActual->toJson(JSON_PRETTY_PRINT);
 
         static::assertJsonStringEqualsJsonFile(self::PATH_JSON_EXPECTED, $jsonActual);
