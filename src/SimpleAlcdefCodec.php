@@ -75,23 +75,44 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
     const INDEX_DATA_MAG = 1;
     const INDEX_DATA_MAGERR = 2;
     const INDEX_DATA_AIRMASS = 3;
+
     /**
      * Decimal precision constants.
      */
     const DECIMAL_PRECISION_ANY = -1;
+    const DECIMAL_PRECISION_NONE = 0;
     const DECIMAL_PRECISION_1 = 1;
     const DECIMAL_PRECISION_2 = 2;
     const DECIMAL_PRECISION_3 = 3;
     const DECIMAL_PRECISION_6 = 6;
 
     /**
+     * Delimiter between whole and decimal parts of decimal numbers.
+     */
+    const DELIMITER_DECIMAL = '.';
+
+    /**
+     * (Meta)format constants for formatting doubles.
+     */
+    const META_FORMAT_DOUBLE_WITH_PRECISION = '%%.%sf';
+    const META_FORMAT_DOUBLE_WITH_PRECISION_AND_SIGN = '%%+.%sf';
+    const FORMAT_DOUBLE_WITH_SIGN = '%+f';
+
+    /**
+     * Offset of one in a string or array.
+     */
+    const OFFSET_ONE = 1;
+
+    /**
      * @var mixed[]
      */
     protected $alcdefDefinition;
+
     /**
      * @var string
      */
     protected $alcdefString;
+
     /**
      * @var string
      */
@@ -450,11 +471,11 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      */
     private function formatDoubleToPrecisionWithSign($value, $precision)
     {
-        if ($precision < 0) {
-            return sprintf('%+f', $value);
+        if ($precision < self::DECIMAL_PRECISION_NONE) {
+            return sprintf(self::FORMAT_DOUBLE_WITH_SIGN, $value);
         } else {
             return $this->formatDoubleToPrecisionWithMetaFormat(
-                '%%+.%sf',
+                self::META_FORMAT_DOUBLE_WITH_PRECISION_AND_SIGN,
                 $value,
                 $precision
             );
@@ -624,7 +645,10 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      */
     private function countDecimals($double)
     {
-        return max(0, strlen(strrchr($double, '.')) - 1);
+        return max(
+            self::DECIMAL_PRECISION_NONE,
+            strlen(strrchr($double, self::DELIMITER_DECIMAL)) - self::OFFSET_ONE
+        );
     }
 
     /**
@@ -636,7 +660,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
     private function formatDoubleToPrecision($value, $precision)
     {
         return $this->formatDoubleToPrecisionWithMetaFormat(
-            '%%.%sf',
+            self::META_FORMAT_DOUBLE_WITH_PRECISION,
             $value,
             $precision
         );
