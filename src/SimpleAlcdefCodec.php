@@ -1,5 +1,4 @@
 <?php
-
 namespace dnl_blkv\alcdef;
 
 use Exception;
@@ -28,6 +27,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      * String representation of the "true" boolean value.
      */
     const STRING_BOOL_TRUE = 'TRUE';
+    const STRING_BOOL_FALSE = 'FALSE';
 
     /**
      * Pattern to match the comparisons (*COMP{X}).
@@ -75,14 +75,23 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
     const INDEX_DATA_MAG = 1;
     const INDEX_DATA_MAGERR = 2;
     const INDEX_DATA_AIRMASS = 3;
+    /**
+     * Decimal precision constants.
+     */
+    const DECIMAL_PRECISION_ANY = -1;
+    const DECIMAL_PRECISION_1 = 1;
+    const DECIMAL_PRECISION_2 = 2;
+    const DECIMAL_PRECISION_3 = 3;
+    const DECIMAL_PRECISION_6 = 6;
 
     /**
      * @var mixed[]
      */
-    protected $alcdefDefinition = [
-        AlcdefFormat::FIELD_DATA => [],
-    ];
-
+    protected $alcdefDefinition;
+    /**
+     * @var string
+     */
+    protected $alcdefString;
     /**
      * @var string
      */
@@ -95,12 +104,24 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      */
     public function decode($alcdefString)
     {
+        $this->resetAlcdefDefinition();
         $alcdefString = $this->normalizeNewlines($alcdefString);
         $alcdefParts = $this->parseAlcdefParts($alcdefString);
         $this->loadMetadata($alcdefParts[self::SUBMATCH_INDEX_METADATA]);
         $this->loadData($alcdefParts[self::SUBMATCH_INDEX_DATA]);
+        $alcdefDefinition = $this->alcdefDefinition;
+        $this->resetAlcdefDefinition();
 
-        return $this->alcdefDefinition;
+        return $alcdefDefinition;
+    }
+
+    /**
+     */
+    private function resetAlcdefDefinition()
+    {
+        $this->alcdefDefinition = [
+            AlcdefFormat::FIELD_DATA => [],
+        ];
     }
 
     /**
@@ -333,6 +354,291 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      */
     public function encode(array $definition)
     {
-        return '';
+        $this->resetAlcdefString();
+
+        foreach ($definition as $key => $value) {
+            if (!$this->isSpecialKey($key)) {
+                $valueEncoded = $this->encodeValue($key, $value);
+                $this->alcdefString .= $key . self::DELIMITER_ALCDEF_KEY_VALUE .
+                    $valueEncoded . self::NEW_LINE_UNIX;
+            }
+        }
+
+        $compSorted = $definition[AlcdefFormat::FIELD_COMP];
+        ksort($compSorted);
+
+        foreach ($compSorted as $compIndex => $compBody) {
+            $this->alcdefString .=
+                $this->encodeCompField(AlcdefFormat::COMP_FIELD_NAME, $compIndex, $compBody) .
+                $this->encodeCompField(AlcdefFormat::COMP_FIELD_RA, $compIndex, $compBody) .
+                $this->encodeCompField(AlcdefFormat::COMP_FIELD_DEC, $compIndex, $compBody) .
+                $this->encodeCompField(AlcdefFormat::COMP_FIELD_MAG, $compIndex, $compBody) .
+                $this->encodeCompField(AlcdefFormat::COMP_FIELD_CI, $compIndex, $compBody);
+        }
+
+        $this->alcdefString .= AlcdefFormat::TAG_ENDMETADATA . self::NEW_LINE_UNIX;
+        $this->setDelimiterDataValueFromLiteral($this->alcdefDefinition[AlcdefFormat::FIELD_DELIMITER]);
+
+        foreach ($definition[AlcdefFormat::FIELD_DATA] as $dataEntry) {
+            $this->alcdefString .= $this->encodeDataEntry($dataEntry);
+        }
+
+        $alcdefString = $this->alcdefString;
+        $this->resetAlcdefString();
+
+        return $alcdefString;
+    }
+
+    /**
+     */
+    private function resetAlcdefString()
+    {
+        $this->alcdefString = AlcdefFormat::TAG_STARTMETADATA . self::NEW_LINE_UNIX;
+    }
+
+    /**
+     * @param string $key
+     *
+     * @return bool
+     */
+    private function isSpecialKey($key)
+    {
+        $specialKeys = [
+            AlcdefFormat::FIELD_COMP => true,
+            AlcdefFormat::FIELD_DATA => true,
+        ];
+
+        return isset($specialKeys[$key]);
+    }
+
+    /**
+     * @param string $fieldName
+     * @param mixed $value
+     *
+     * @return string
+     */
+    private function encodeValue($fieldName, $value)
+    {
+        if ($this->isBoolean($fieldName)) {
+            return $value ? self::STRING_BOOL_TRUE : self::STRING_BOOL_FALSE;
+        } elseif ($this->isDouble($fieldName)) {
+            return $this->formatDoubleValue($fieldName, $value);
+        } else {
+            return $value;
+        }
+    }
+
+    /**
+     * @param string $fieldName
+     * @param double $value
+     *
+     * @return string
+     */
+    private function formatDoubleValue($fieldName, $value)
+    {
+        return $this->formatDoubleToPrecisionWithSign(
+            $value,
+            $this->determinePrecisionForDoubleField($fieldName)
+        );
+    }
+
+    /**
+     * @param double $value
+     * @param int $precision
+     *
+     * @return string
+     */
+    private function formatDoubleToPrecisionWithSign($value, $precision)
+    {
+        if ($precision < 0) {
+            return sprintf('%+f', $value);
+        } else {
+            return $this->formatDoubleToPrecisionWithMetaFormat(
+                '%%+.%sf',
+                $value,
+                $precision
+            );
+        }
+    }
+
+    /**
+     * @param string $metaFormat
+     * @param double $value
+     * @param int $precision
+     *
+     * @return string
+     */
+    private function formatDoubleToPrecisionWithMetaFormat($metaFormat, $value, $precision)
+    {
+        $format = sprintf($metaFormat, $precision);
+
+        return sprintf($format, $value);
+    }
+
+    /**
+     * @param string $fieldName
+     *
+     * @return int
+     */
+    private function determinePrecisionForDoubleField($fieldName)
+    {
+        if ($this->isPrecision1($fieldName)) {
+            return self::DECIMAL_PRECISION_1;
+        } elseif ($this->isPrecision2($fieldName)) {
+            return self::DECIMAL_PRECISION_2;
+        } elseif ($this->isPrecision3($fieldName)) {
+            return self::DECIMAL_PRECISION_3;
+        } elseif ($this->isPrecision6($fieldName)) {
+            return self::DECIMAL_PRECISION_6;
+        } else {
+            return self::DECIMAL_PRECISION_ANY;
+        }
+    }
+
+    /**
+     * @param string $fieldName
+     *
+     * @return bool
+     */
+    private function isPrecision1($fieldName)
+    {
+        $fieldsWithPrecisionMax3 = [
+            AlcdefFormat::FIELD_PABB => true,
+            AlcdefFormat::FIELD_PABL => true,
+        ];
+
+        return isset($fieldsWithPrecisionMax3[$fieldName]);
+    }
+
+    /**
+     * @param string $fieldName
+     *
+     * @return bool
+     */
+    private function isPrecision2($fieldName)
+    {
+        $fieldsWithPrecisionMax3 = [
+            AlcdefFormat::FIELD_PHASE => true,
+        ];
+
+        return isset($fieldsWithPrecisionMax3[$fieldName]);
+    }
+
+    /**
+     * @param string $fieldName
+     *
+     * @return bool
+     */
+    private function isPrecision3($fieldName)
+    {
+        $fieldsWithPrecisionMax3 = [
+            AlcdefFormat::COMP_FIELD_CI => true,
+            AlcdefFormat::COMP_FIELD_MAG => true,
+            AlcdefFormat::FIELD_CITARGET => true,
+            AlcdefFormat::FIELD_MAGADJUST => true,
+        ];
+
+        return isset($fieldsWithPrecisionMax3[$fieldName]);
+    }
+
+    /**
+     * @param string $fieldName
+     *
+     * @return bool
+     */
+    private function isPrecision6($fieldName)
+    {
+        $fieldsWithPrecisionMax6 = [
+            AlcdefFormat::FIELD_OBSLATITUDE => true,
+            AlcdefFormat::FIELD_OBSLONGITUDE => true,
+        ];
+
+        return isset($fieldsWithPrecisionMax6[$fieldName]);
+    }
+
+    /**
+     * @param string $compField
+     * @param int $compIndex
+     * @param mixed[] $compBody
+     *
+     * @return string
+     */
+    private function encodeCompField($compField, $compIndex, $compBody)
+    {
+        return
+            AlcdefFormat::FIELD_COMP . $compField . $compIndex .
+            self::DELIMITER_ALCDEF_KEY_VALUE .
+            $this->encodeValue($compField, $compBody[$compField]) .
+            self::NEW_LINE_UNIX;
+    }
+
+    /**
+     * @param double[] $dataEntry
+     *
+     * @return string
+     */
+    private function encodeDataEntry($dataEntry)
+    {
+        return
+            AlcdefFormat::FIELD_DATA . self::DELIMITER_ALCDEF_KEY_VALUE .
+            $this->formatDoubleToMinPrecision(
+                $dataEntry[AlcdefFormat::DATA_KEY_JD],
+                self::DECIMAL_PRECISION_6
+            ) . $this->delimiterDataValue .
+            $this->formatDoubleToPrecision(
+                $dataEntry[AlcdefFormat::DATA_KEY_MAG],
+                self::DECIMAL_PRECISION_3
+            ) . $this->delimiterDataValue .
+            $this->formatDoubleToPrecision(
+                $dataEntry[AlcdefFormat::DATA_KEY_MAGERR],
+                self::DECIMAL_PRECISION_3
+            ) . $this->delimiterDataValue .
+            $this->formatDoubleToPrecision(
+                $dataEntry[AlcdefFormat::DATA_KEY_AIRMASS],
+                self::DECIMAL_PRECISION_3
+            ) . $this->delimiterDataValue .
+            self::NEW_LINE_UNIX;
+    }
+
+    /**
+     * @param double $double
+     * @param string $precision
+     *
+     * @return string
+     */
+    private function formatDoubleToMinPrecision($double, $precision)
+    {
+        $decimalCountActual = $this->countDecimals($double);
+
+        if ($decimalCountActual < $precision) {
+            return $this->formatDoubleToPrecision($double, $precision);
+        }
+
+        return $double;
+    }
+
+    /**
+     * @param double $double
+     *
+     * @return int
+     */
+    private function countDecimals($double)
+    {
+        return max(0, strlen(strrchr($double, '.')) - 1);
+    }
+
+    /**
+     * @param double $value
+     * @param int $precision
+     *
+     * @return string
+     */
+    private function formatDoubleToPrecision($value, $precision)
+    {
+        return $this->formatDoubleToPrecisionWithMetaFormat(
+            '%%.%sf',
+            $value,
+            $precision
+        );
     }
 }

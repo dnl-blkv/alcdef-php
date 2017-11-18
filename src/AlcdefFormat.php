@@ -6,6 +6,12 @@ namespace dnl_blkv\alcdef;
 abstract class AlcdefFormat
 {
     /**
+     * Metadata tags.
+     */
+    const TAG_STARTMETADATA = 'STARTMETADATA';
+    const TAG_ENDMETADATA = 'ENDMETADATA';
+
+    /**
      * ALCDEF field names.
      */
     const FIELD_BIBCODE = 'BIBCODE';
