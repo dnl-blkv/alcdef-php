@@ -16,12 +16,12 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      * Pattern and replacement used for newline normalization to Unix format.
      */
     const PATTERN_NEW_LINE_ANY = '@\\r?\\n@';
-    const NEW_LINE_UNIX = "\n";
+    const NEW_LINE_WINDOWS = "\r\n";
 
     /**
      * Delimiters to split ALCDEF document into lines.
      */
-    const DELIMITER_LINES = self::NEW_LINE_UNIX;
+    const DELIMITER_LINES = self::NEW_LINE_WINDOWS;
 
     /**
      * String representation of the "true" boolean value.
@@ -43,7 +43,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
     /**
      * Constants to split an ALCDEF unit into data and metadata.
      */
-    const PATTERN_ALCDEF_METADATA_DATA = '@STARTMETADATA\\n(.*)\\nENDMETADATA\\n(.*)\\n@ms';
+    const PATTERN_ALCDEF_METADATA_DATA = '@STARTMETADATA\\r\\n(.*)\\r\\nENDMETADATA\\r\\n(.*)\\r\\n@ms';
     const SUBMATCH_INDEX_METADATA = 1;
     const SUBMATCH_INDEX_DATA = 2;
 
@@ -131,7 +131,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      */
     protected function normalizeNewlines($string)
     {
-        return preg_replace(self::PATTERN_NEW_LINE_ANY, self::NEW_LINE_UNIX, $string);
+        return preg_replace(self::PATTERN_NEW_LINE_ANY, self::NEW_LINE_WINDOWS, $string);
     }
 
     /**
@@ -360,7 +360,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
             if (!$this->isSpecialKey($key)) {
                 $valueEncoded = $this->encodeValue($key, $value);
                 $this->alcdefString .= $key . self::DELIMITER_ALCDEF_KEY_VALUE .
-                    $valueEncoded . self::NEW_LINE_UNIX;
+                    $valueEncoded . self::NEW_LINE_WINDOWS;
             }
         }
 
@@ -376,7 +376,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
                 $this->encodeCompField(AlcdefFormat::COMP_FIELD_CI, $compIndex, $compBody);
         }
 
-        $this->alcdefString .= AlcdefFormat::TAG_ENDMETADATA . self::NEW_LINE_UNIX;
+        $this->alcdefString .= AlcdefFormat::TAG_ENDMETADATA . self::NEW_LINE_WINDOWS;
         $this->setDelimiterDataValueFromLiteral($this->alcdefDefinition[AlcdefFormat::FIELD_DELIMITER]);
 
         foreach ($definition[AlcdefFormat::FIELD_DATA] as $dataEntry) {
@@ -393,7 +393,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
      */
     private function resetAlcdefString()
     {
-        $this->alcdefString = AlcdefFormat::TAG_STARTMETADATA . self::NEW_LINE_UNIX;
+        $this->alcdefString = AlcdefFormat::TAG_STARTMETADATA . self::NEW_LINE_WINDOWS;
     }
 
     /**
@@ -569,7 +569,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
             AlcdefFormat::FIELD_COMP . $compField . $compIndex .
             self::DELIMITER_ALCDEF_KEY_VALUE .
             $this->encodeValue($compField, $compBody[$compField]) .
-            self::NEW_LINE_UNIX;
+            self::NEW_LINE_WINDOWS;
     }
 
     /**
@@ -597,7 +597,7 @@ class SimpleAlcdefCodec implements AlcdefDecoder, AlcdefEncoder
                 $dataEntry[AlcdefFormat::DATA_KEY_AIRMASS],
                 self::DECIMAL_PRECISION_3
             ) . $this->delimiterDataValue .
-            self::NEW_LINE_UNIX;
+            self::NEW_LINE_WINDOWS;
     }
 
     /**
